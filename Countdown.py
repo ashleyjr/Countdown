@@ -38,8 +38,8 @@ def main():
     """ Main """
 
     """ Check correct number of arguments """
-    if 7 != len(sys.argv):
-        print "Requires 6 numbers"
+    if 8 != len(sys.argv):
+        print "Requires 7 numbers"
         return
 
     """ Attempt to turn arguments in array of integers """
@@ -51,8 +51,16 @@ def main():
             print "All arguments must be numbers"
             return
 
-    """ Run the hill climber """
-    target = 1232
+    """ Attempt to turn target in to number """
+    try:
+        target = int(sys.argv[7])
+    except ValueError:
+        print "All arguments must be numbers"
+        return
+
+    """ Run every combination """
+    print nums
+    print target
     finds = []
     perms = list(itertools.permutations(nums, len(nums)))
     top = len(perms)
@@ -61,7 +69,7 @@ def main():
         for op_code in range(0, 1024):
             for length in range(2, 7):
                 output, method = op(op_code, perms[perm], length)
-                if target == sum:
+                if target == output:
                     find = method + " = " + str(output)
                     if find not in finds:
                         finds.append(find)
