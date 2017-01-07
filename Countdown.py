@@ -1,15 +1,16 @@
 import sys
+import random
 
 
 def num_op(op, one, two):
     if 0 == op:
-        return one + two
+        return float(one) + float(two)
     if 1 == op:
-        return one - two
+        return float(one) - float(two)
     if 2 == op:
-        return one * two
+        return float(one) * float(two)
     if 3 == op:
-        return one / two
+        return float(one) / float(two)
 
 
 def print_op(op):
@@ -23,16 +24,20 @@ def print_op(op):
         return "/"
 
 
-def str_setup(ops, nums):
-    print "(((((",
-    if ops[0]:
-        print
+def rand_ops():
+    ops = []
+    for i in range(0, 6):
+        ops.append(int(round(random.random()*3)))
+    return ops
 
 
-
-    for i in range(0, 5):
-        print str(nums[i]) + " ) " + str(print_op(ops[i])) + " ",
-    return str(nums[5])
+def shuffle(in_nums):
+    out_nums = []
+    for i in range(0, 6):
+        rand_pos = int(round(random.random()*(len(in_nums)-1)))
+        out_nums.append(in_nums[rand_pos])
+        del in_nums[rand_pos]
+    return out_nums
 
 
 def main():
@@ -53,17 +58,27 @@ def main():
             return
 
     """ Run the hill climber """
-    ops = [0, 0, 0, 0, 0]
-    for length in range(2, 7):
-        for i in range(2, length):
-            sys.stdout.write("(")
-        accumulator = num_op(ops[0], nums[0], nums[1])
-        sys.stdout.write("(" + str(nums[0]) + print_op(ops[0]) + str(nums[1]) + ")")
-        for i in range(2, length):
-            accumulator = num_op(ops[i - 1], accumulator, nums[i])
-            sys.stdout.write(print_op(ops[0]) + str(nums[i]) + ")")
-        sys.stdout.write(" = " + str(accumulator) + "\n")
-
+    finds = []
+    target = 200
+    for trys in range(0, 100000):
+        print trys
+        nums = shuffle(nums)
+        ops = rand_ops()
+        for length in range(2, 7):
+            find = ""
+            for i in range(2, length):
+                find += "("
+            accumulator = num_op(ops[0], nums[0], nums[1])
+            find += "(" + str(nums[0]) + print_op(ops[0]) + str(nums[1]) + ")"
+            for i in range(2, length):
+                accumulator = num_op(ops[i - 1], accumulator, nums[i])
+                find += print_op(ops[i - 1]) + str(nums[i]) + ")"
+            find += " = " + str(accumulator) + "\n"
+            if target == accumulator:
+                if find not in finds:
+                    finds.append(find)
+    for eq in finds:
+        print eq
 
 if __name__ == "__main__":
     main()
