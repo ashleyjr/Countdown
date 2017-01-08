@@ -1,11 +1,12 @@
 import os
 from PIL import Image
 from sklearn import datasets, svm, metrics
+from sklearn.externals import joblib
 
-classifier = svm.SVC(gamma=0.001)
-
+filename = 'tile_classifier'
 scale = 50, 50
 threshold = 128
+classifier = svm.SVC(gamma=0.001)
 
 
 def load_im_array(path):
@@ -32,6 +33,8 @@ for i in range(1, 101):
 print features
 print samples
 classifier.fit(features, samples)
+
+joblib.dump(classifier, 'file.pkl')
 
 
 """ Test the SVC """
