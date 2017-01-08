@@ -17,6 +17,6 @@ for f in os.listdir(row_path):
         cropped_im = im.crop(crop_rectangle)
         cropped_im = cropped_im.resize(scale, Image.ANTIALIAS).convert('L')
         cropped_im = cropped_im.point(lambda x: 0 if x < threshold else 255, '1')
-        cropped_im.show()
-        print classifier.predict(list(cropped_im.getdata()))
-    im.show()
+        #cropped_im.show()
+        print classifier.predict(list(cropped_im.getdata()))[0]
+    #im.show()
