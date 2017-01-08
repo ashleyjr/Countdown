@@ -19,7 +19,7 @@ def main():
             if os.path.isfile(number):
                 im = Image.open(number)
                 im = im.resize(scale, Image.ANTIALIAS).convert('L')
-                im = im.point(lambda x: 0 if x < threshold else 1, '1')
+                im = im.point(lambda x: 0 if x < threshold else 255, '1')
                 features.append(list(im.getdata()))
                 samples.append(i)
             else:
