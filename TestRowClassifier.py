@@ -9,7 +9,7 @@ classifier_filename = 'tile_classifier.pkl'
 
 def load_row(filename):
     img = cv2.imread(filename, 0)
-    img = cv2.resize(img, (6*12, 12))
+    img = cv2.resize(img, (6*8, 8))
     ret, img = cv2.threshold(img, img.mean(), 255, cv2.THRESH_BINARY)
     return img
 
@@ -25,7 +25,7 @@ def break_row(im):
     for i in range(0, 6):
         start = i*step
         end = start + step
-        crop = im[0:height, start:end]
+        crop = im[1:(height - 1), start + 1:end - 1]
         crops.append(crop)
     return crops
 
