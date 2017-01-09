@@ -1,23 +1,52 @@
 import os
-from PIL import Image, ImageFilter
-from sklearn import datasets, svm, metrics
-from sklearn.externals import joblib
+import numpy as np
+import cv2
 
 row_path = 'TestImages/TestingRows/'
-scale = 20, 20
-threshold = 128
 
-classifier = joblib.load('tile_classifier.pkl')
-for f in os.listdir(row_path):
-    im = Image.open(row_path + f)
-    width, height = im.size
+
+def load_row(filename):
+    img = cv2.imread(filename, 0)
+    img = cv2.resize(img, (6*12, 12))
+    ret, img = cv2.threshold(img, img.mean(), 255, cv2.THRESH_BINARY)
+    return img
+
+
+def break_row(im):
+    """
+    :param im: image of the numbers row
+    :return: an array of 6 images
+    """
+    crops = []
+    width, height = tuple(im.shape[1::-1])
     step = width/6
     for i in range(0, 6):
-        crop_rectangle = ((step*i), 0, (step*(i+1)), height)
-        cropped_im = im.crop(crop_rectangle)
-        cropped_im = cropped_im.resize(scale, Image.ANTIALIAS).convert('L')
-        cropped_im = cropped_im.filter(ImageFilter.FIND_EDGES)
-        cropped_im = cropped_im.point(lambda x: 0 if x < threshold else 255, '1')
-        #cropped_im.show()
-        print classifier.predict(list(cropped_im.getdata()))[0]
-    #im.show()
+        start = i*step
+        end = start + step
+        crop = im[0:height, start:end]
+        crops.append(crop)
+    return crops
+
+
+def main():
+    data_file = row_path + "/data.csv "
+    data = np.genfromtxt(
+        data_file,                                                          # file name
+        skip_header=0,                                                      # lines to skip at the top
+        skip_footer=0,                                                      # lines to skip at the bottom
+        delimiter=',',                                                      # column delimiter
+        dtype='int',                                                        # data type
+        filling_values=0,                                                   # fill missing values with 0
+        usecols=(0, 1, 2, 3, 4, 5, 6),                                      # columns to read
+        names=['filename', 'one', 'two', 'three', 'four', 'five', 'six']    # column names
+    )
+    for i in range(0, len(data['filename'])):
+        in_name = row_path + str(data['filename'][i]) + ".png"
+        images = break_row(load_row(in_name))
+        for j in range(0, 6):
+            out_name = row_path + str(data['filename'][i]) + "_" + str(j) + ".png"
+            cv2.imwrite(out_name, images[j])
+            print images[j]
+
+if __name__ == "__main__":
+    main()
