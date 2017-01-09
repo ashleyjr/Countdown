@@ -1,10 +1,9 @@
-import os
 import numpy as np
 import cv2
 from sklearn import svm
 from sklearn.externals import joblib
 
-row_path = 'TestImages/TestingRows/'
+row_path = 'TestImages/TrainingRows/'
 classifier_filename = 'tile_classifier.pkl'
 
 
@@ -32,9 +31,7 @@ def break_row(im):
 
 
 def main():
-    classifier = svm.SVC()
-    features = []
-    answers = []
+    classifier = joblib.load(classifier_filename)
     data_file = row_path + "/data.csv "
     data = np.genfromtxt(
         data_file,                                                          # file name
@@ -52,14 +49,7 @@ def main():
         for j in range(0, 6):
             out_name = row_path + str(data['filename'][i]) + "_" + str(j) + ".png"
             cv2.imwrite(out_name, images[j])
-            if 1 == data[i][j+1]:
-                features.append(images[j].flatten())
-                answers.append(1)
-            else:
-                features.append(images[j].flatten())
-                answers.append(0)
-    classifier.fit(features, answers)
-    joblib.dump(classifier, classifier_filename)
+            print classifier.predict(images[j].flatten())[0], data[i][j+1]
 
 if __name__ == "__main__":
     main()
