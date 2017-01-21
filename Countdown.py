@@ -36,7 +36,7 @@ def downscale_image(img, bottom, x, y):
         Canny edge detection
     """
     width, height = tuple(img.shape[1::-1])
-    img = img[int(round((1 - bottom) * (height - 1))):(height - 1), 1:(width - 1)]
+    img = img[int(round((1 - bottom) * (height - 1))):(height - 1),int((width-1)*0.25):int(0.75*(width - 1))]
     img = cv2.resize(img, (x, y))
     img = cv2.Canny(img, 100, 200)
     return img
@@ -74,10 +74,12 @@ def main():
             labels.append(-1)
 
     """ The data """
+    x = 10
+    y = 5
     for name in data['filename']:
         name_ext = str(name) + img_ext
-        im = downscale_image(cv2.imread(name_ext, 0), 0.2, 100, 10)
-        img = cv2.resize(im, (1000, 100))
+        im = downscale_image(cv2.imread(name_ext, 0), 0.2, x, y)
+        img = cv2.resize(im, (10*x, 10*y))
         cv2.imwrite(name_ext, img)
         features.append(im.flatten())
 
@@ -98,12 +100,14 @@ def main():
         meantime.append(mean/i)
 
     """ Write performance to file to keep track """
+    score = mean/loops
+    print score
     f = open(perf_file, 'w')
-    f.write("Performance: " + str(mean/loops))
+    f.write("Performance: " + str(score))
     f.close()
 
     """ remove temp data """
-    clean_data()
+    #clean_data()
 
     """ Ensure the mean has converged """
     plt.plot(meantime)
