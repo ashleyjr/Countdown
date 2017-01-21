@@ -2,6 +2,7 @@ import os
 import zipfile
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
 from sklearn import svm
 from sklearn import cross_validation
 
@@ -31,7 +32,7 @@ def downscale_image(img, bottom, x, y):
     """
         Take bottom section of image
         Rescale
-        Threshold around mean of image
+        Canny edge detection
     """
     width, height = tuple(img.shape[1::-1])
     img = img[int(round((1 - bottom) * (height - 1))):(height - 1), 1:(width - 1)]
@@ -45,7 +46,6 @@ def main():
 
     labels = []
     features = []
-
 
     """ The labels """
     data = np.genfromtxt(
@@ -78,16 +78,24 @@ def main():
         im = downscale_image(cv2.imread(name_ext, 0), 0.2, 100, 10)
         features.append(im.flatten())
 
-    """ Split data for cross validation """
-    features_train, features_test, labels_train, labels_test = \
-        cross_validation.train_test_split(features, labels, test_size=0.1, random_state=0)
+    loops = 1500
+    mean = 0
+    meantime = []
+    for i in range(1,loops):
+        """ Split data for cross validation """
+        features_train, features_test, labels_train, labels_test = \
+            cross_validation.train_test_split(features, labels, test_size=0.1, random_state=i)
 
-    """ Train """
-    clf = svm.SVC(gamma=0.001)
-    clf.fit(features_train, labels_train)
+        """ Train """
+        clf = svm.SVC(gamma=0.001)
+        clf.fit(features_train, labels_train)
 
-    """ Score """
-    print clf.score(features_test, labels_test)
+        """ Score """
+        mean += clf.score(features_test, labels_test)
+        meantime.append(mean/i)
+
+    plt.plot(meantime)
+    plt.show()
 
     clean_data()
 
