@@ -40,7 +40,7 @@ def downscale_image(img, bottom, x, y):
         Canny edge detection
     """
     width, height = tuple(img.shape[1::-1])
-    img = img[int(round((1 - bottom) * (height - 1))):(height - 1),int((width-1)*0.25):int(0.75*(width - 1))]
+    img = img[int(round((1 - bottom) * (height - 1))):(height - 1), 1:(width - 1)]
     img = cv2.resize(img, (x, y))
     img = cv2.Canny(img, 100, 200)
     return img
@@ -76,24 +76,23 @@ def main():
         else:
             labels.append(-1)
 
-    width = 10
-    height = 10
+    bottom = 0.2
+    width = 30
+    height = 30
 
     plot_z = np.zeros((width, height))
     """ The data """
-    for x in range(1, width+1 ):
+    for x in range(1, width+1):
         for y in range(1, height+1):
-            clean_data()
-            unzip_data()
             features = []
             for name in data['filename']:
                 name_ext = str(name) + img_ext
-                im = downscale_image(cv2.imread(name_ext, 0), 0.2, x, y)
+                im = downscale_image(cv2.imread(name_ext, 0), bottom, x, y)
                 img = cv2.resize(im, (100*x, 100*y))
-                cv2.imwrite(name_ext, img)
+                #cv2.imwrite(name_ext, img)
                 features.append(im.flatten())
 
-            loops = 15
+            loops = 1500
             mean = 0
             meantime = []
             for i in range(1, loops):
@@ -126,15 +125,17 @@ def main():
     print xi
 
     X, Y = np.meshgrid(xi, yi)
-    #Z = griddata(xi, yi, plot_z, xi, yi)
-
     surf = ax.plot_surface(X, Y, plot_z, rstride=5, cstride=5, cmap=cm.jet,
                            linewidth=1, antialiased=True)
-
-    #ax.set_zlim3d(np.min(Z), np.max(Z))
     fig.colorbar(surf)
 
+    ax.set_xlabel('Width (pixels)')
+    ax.set_ylabel('Height (pixels)')
+    ax.set_zlabel('Score')
+    title = "Bottom " + str(bottom*100) + "% of image"
+    plt.title(title)
     plt.show()
+
     """ remove temp data """
     #clean_data()
 
