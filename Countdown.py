@@ -77,47 +77,44 @@ def main():
         else:
             labels.append(-1)
 
-    bottom = 0.35
-    meantime = []
-    for j in range(1, 50):
-        bottom = float(j)/100
-        print bottom
-        x = 3
-        y = 12
-        features = []
-        for name in data['filename']:
-            name_ext = str(name) + img_ext
-            im = downscale_image(cv2.imread(name_ext, 0), bottom, x, y)
-            img = cv2.resize(im, (100*x, 100*y))
-            features.append(im.flatten())
+    """ The features """
+    x = 3
+    y = 12
+    bottom = 0.15
+    features = []
+    for name in data['filename']:
+        name_ext = str(name) + img_ext
+        im = downscale_image(cv2.imread(name_ext, 0), bottom, x, y)
+        img = cv2.resize(im, (100 * x, 100 * y))
+        features.append(im.flatten())
 
-        loops = 100
-        mean = 0
-        for i in range(1, loops):
-            """ Split data for cross validation """
-            features_train, features_test, labels_train, labels_test = \
-                cross_validation.train_test_split(features, labels, test_size=0.1, random_state=i)
+    """ Train and validate the classifier """
+    loops = 100
+    acc = 0
+    mean = []
+    for i in range(1, loops):
+        """ Split data for cross validation """
+        features_train, features_test, labels_train, labels_test = \
+            cross_validation.train_test_split(features, labels, test_size=0.7, random_state=i)
 
-            """ Train """
-            clf = svm.SVC(gamma=0.001)
-            clf.fit(features_train, labels_train)
+        """ Train """
+        clf = svm.SVC(gamma=0.001)
+        clf.fit(features_train, labels_train)
 
-            """ Score """
-            mean += clf.score(features_test, labels_test)
-        meantime.append(mean/(loops-1))
-    print meantime
+        """ Score """
+        acc += clf.score(features_test, labels_test)
+        mean.append(acc/i)
+
     """ Write performance to file to keep track """
-    score = mean/(loops-1)
-    print x, y, score
     f = open(perf_file, 'w')
-    f.write("Performance: " + str(score))
+    f.write("Performance: " + str(mean[-1]))
     f.close()
 
     """ remove temp data """
-    #clean_data()
+    clean_data()
 
     """ Ensure the mean has converged """
-    plt.plot(meantime)
+    plt.plot(mean)
     plt.show()      # WILL STALL HERE
 
 if __name__ == "__main__":
