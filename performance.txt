@@ -1,1 +1,1 @@
-Performance: 1.0
+Performance: 0.919732441472

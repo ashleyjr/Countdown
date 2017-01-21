@@ -2,13 +2,10 @@ import os
 import zipfile
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
 from sklearn import svm
 from sklearn import cross_validation
-from mpl_toolkits.mplot3d import Axes3D
-from matplotlib import cm
 import matplotlib.pyplot as plt
-from matplotlib.mlab import griddata
+
 
 """ Global constants """
 data_zip = "data.zip"               # The zip archive
@@ -89,13 +86,13 @@ def main():
         features.append(im.flatten())
 
     """ Train and validate the classifier """
-    loops = 100
+    loops = 300
     acc = 0
     mean = []
     for i in range(1, loops):
         """ Split data for cross validation """
         features_train, features_test, labels_train, labels_test = \
-            cross_validation.train_test_split(features, labels, test_size=0.7, random_state=i)
+            cross_validation.train_test_split(features, labels, test_size=0.1, random_state=i)
 
         """ Train """
         clf = svm.SVC(gamma=0.001)
@@ -109,6 +106,21 @@ def main():
     f = open(perf_file, 'w')
     f.write("Performance: " + str(mean[-1]))
     f.close()
+
+    """ Train on all the data """
+    clf = svm.SVC(gamma=0.001)
+    clf.fit(features, labels)
+
+    """ Find good images """
+    x = 3
+    y = 12
+    bottom = 0.15
+    for name in data['filename']:
+        name_ext = str(name) + img_ext
+        im = downscale_image(cv2.imread(name_ext, 0), bottom, x, y)
+        if 1 == clf.predict(im.flatten()):
+            print name
+
 
     """ remove temp data """
     clean_data()
