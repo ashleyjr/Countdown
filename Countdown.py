@@ -5,6 +5,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn import svm
 from sklearn import cross_validation
+from mpl_toolkits.mplot3d import Axes3D
+from matplotlib import cm
+import matplotlib.pyplot as plt
+from matplotlib.mlab import griddata
 
 """ Global constants """
 data_zip = "data.zip"               # The zip archive
@@ -46,7 +50,6 @@ def main():
     unzip_data()
 
     labels = []
-    features = []
 
     """ The labels """
     data = np.genfromtxt(
@@ -73,45 +76,71 @@ def main():
         else:
             labels.append(-1)
 
+    width = 10
+    height = 10
+
+    plot_z = np.zeros((width, height))
     """ The data """
-    x = 10
-    y = 5
-    for name in data['filename']:
-        name_ext = str(name) + img_ext
-        im = downscale_image(cv2.imread(name_ext, 0), 0.2, x, y)
-        img = cv2.resize(im, (10*x, 10*y))
-        cv2.imwrite(name_ext, img)
-        features.append(im.flatten())
+    for x in range(1, width+1 ):
+        for y in range(1, height+1):
+            clean_data()
+            unzip_data()
+            features = []
+            for name in data['filename']:
+                name_ext = str(name) + img_ext
+                im = downscale_image(cv2.imread(name_ext, 0), 0.2, x, y)
+                img = cv2.resize(im, (100*x, 100*y))
+                cv2.imwrite(name_ext, img)
+                features.append(im.flatten())
 
-    loops = 1500
-    mean = 0
-    meantime = []
-    for i in range(1, loops):
-        """ Split data for cross validation """
-        features_train, features_test, labels_train, labels_test = \
-            cross_validation.train_test_split(features, labels, test_size=0.1, random_state=i)
+            loops = 15
+            mean = 0
+            meantime = []
+            for i in range(1, loops):
+                """ Split data for cross validation """
+                features_train, features_test, labels_train, labels_test = \
+                    cross_validation.train_test_split(features, labels, test_size=0.1, random_state=i)
 
-        """ Train """
-        clf = svm.SVC(gamma=0.001)
-        clf.fit(features_train, labels_train)
+                """ Train """
+                clf = svm.SVC(gamma=0.001)
+                clf.fit(features_train, labels_train)
 
-        """ Score """
-        mean += clf.score(features_test, labels_test)
-        meantime.append(mean/i)
+                """ Score """
+                mean += clf.score(features_test, labels_test)
+                meantime.append(mean/i)
 
-    """ Write performance to file to keep track """
-    score = mean/loops
-    print score
-    f = open(perf_file, 'w')
-    f.write("Performance: " + str(score))
-    f.close()
+            """ Write performance to file to keep track """
+            score = mean/loops
+            print x, y, score
+            plot_z[x-1][y-1] = score
+            f = open(perf_file, 'w')
+            f.write("Performance: " + str(score))
+            f.close()
+    print plot_z
 
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    xi = np.linspace(1, width, width)
+    yi = np.linspace(1, height, height)
+    print xi
+
+    X, Y = np.meshgrid(xi, yi)
+    #Z = griddata(xi, yi, plot_z, xi, yi)
+
+    surf = ax.plot_surface(X, Y, plot_z, rstride=5, cstride=5, cmap=cm.jet,
+                           linewidth=1, antialiased=True)
+
+    #ax.set_zlim3d(np.min(Z), np.max(Z))
+    fig.colorbar(surf)
+
+    plt.show()
     """ remove temp data """
     #clean_data()
 
     """ Ensure the mean has converged """
-    plt.plot(meantime)
-    plt.show()      # WILL STALL HERE
+    #plt.plot(meantime)
+    #plt.show()      # WILL STALL HERE
 
 if __name__ == "__main__":
     main()
