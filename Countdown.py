@@ -42,7 +42,8 @@ def downscale_image(img, bottom, x, y):
     width, height = tuple(img.shape[1::-1])
     img = img[int(round((1 - bottom) * (height - 1))):(height - 1), 1:(width - 1)]
     img = cv2.resize(img, (x, y))
-    img = cv2.Canny(img, 100, 200)
+    #img = cv2.Canny(img, 100, 200)
+    ret, img = cv2.threshold(img, img.mean(), 255, cv2.THRESH_BINARY)
     return img
 
 
