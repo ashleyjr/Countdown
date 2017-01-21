@@ -1,6 +1,9 @@
 import os
 import zipfile
 import cv2
+import numpy as np
+from sklearn import svm
+from sklearn import cross_validation
 
 """ Global constants """
 data_zip = "data.zip"               # The zip archive
@@ -30,21 +33,62 @@ def downscale_image(img, bottom, x, y):
         Rescale
         Threshold around mean of image
     """
-    #ret, img = cv2.threshold(img, img.mean(), 255, cv2.THRESH_BINARY)
-    #img = cv2.Canny(img,100,200)
     width, height = tuple(img.shape[1::-1])
     img = img[int(round((1 - bottom) * (height - 1))):(height - 1), 1:(width - 1)]
     img = cv2.resize(img, (x, y))
     img = cv2.Canny(img, 100, 200)
-    #ret, img = cv2.threshold(img, img.mean(), 255, cv2.THRESH_BINARY)
     return img
 
 
 def main():
     unzip_data()
-    file_list = [f for f in os.listdir(".") if f.endswith(img_ext)]
-    for file in file_list:
-        cv2.imwrite(file, downscale_image(cv2.imread(file, 0), 0.2, 60, 20))
+
+    labels = []
+    features = []
+
+
+    """ The labels """
+    data = np.genfromtxt(
+        data_file,                      # file name
+        skip_header=0,                  # lines to skip at the top
+        skip_footer=0,                  # lines to skip at the bottom
+        delimiter=',',                  # column delimiter
+        dtype='int',                    # data type
+        filling_values=0,               # fill missing values with 0
+        usecols=(0, 1, 2, 3, 4, 5, 6),  # columns to read
+        names=[
+            'filename',
+            'one',
+            'two',
+            'three',
+            'four',
+            'five',
+            'six'
+        ]                               # column names
+    )
+    for ones in data['one']:
+        if ones:
+            labels.append(1)
+        else:
+            labels.append(-1)
+
+    """ The data """
+    for name in data['filename']:
+        name_ext = str(name) + img_ext
+        im = downscale_image(cv2.imread(name_ext, 0), 0.2, 100, 10)
+        features.append(im.flatten())
+
+    """ Split data for cross validation """
+    features_train, features_test, labels_train, labels_test = \
+        cross_validation.train_test_split(features, labels, test_size=0.1, random_state=0)
+
+    """ Train """
+    clf = svm.SVC(gamma=0.001)
+    clf.fit(features_train, labels_train)
+
+    """ Score """
+    print clf.score(features_test, labels_test)
+
     clean_data()
 
 if __name__ == "__main__":
