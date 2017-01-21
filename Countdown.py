@@ -78,8 +78,8 @@ def main():
             labels.append(-1)
 
     bottom = 0.2
-    width = 30
-    height = 30
+    width = 15
+    height = 15
 
     plot_z = np.zeros((width, height))
     """ The data """
@@ -126,7 +126,7 @@ def main():
     print xi
 
     X, Y = np.meshgrid(xi, yi)
-    surf = ax.plot_surface(X, Y, plot_z, rstride=5, cstride=5, cmap=cm.jet,
+    surf = ax.plot_surface(X, Y, plot_z, rstride=1, cstride=1, cmap=cm.jet,
                            linewidth=1, antialiased=True)
     fig.colorbar(surf)
 
