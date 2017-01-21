@@ -11,6 +11,7 @@ data_zip = "data.zip"               # The zip archive
 clean_files = [".csv", ".jpg"]      # File extensions to clean
 data_file = "data.csv"
 img_ext = ".jpg"
+perf_file = "performance.txt"
 
 
 def unzip_data():
@@ -76,12 +77,14 @@ def main():
     for name in data['filename']:
         name_ext = str(name) + img_ext
         im = downscale_image(cv2.imread(name_ext, 0), 0.2, 100, 10)
+        img = cv2.resize(im, (1000, 100))
+        cv2.imwrite(name_ext, img)
         features.append(im.flatten())
 
     loops = 1500
     mean = 0
     meantime = []
-    for i in range(1,loops):
+    for i in range(1, loops):
         """ Split data for cross validation """
         features_train, features_test, labels_train, labels_test = \
             cross_validation.train_test_split(features, labels, test_size=0.1, random_state=i)
@@ -94,10 +97,17 @@ def main():
         mean += clf.score(features_test, labels_test)
         meantime.append(mean/i)
 
-    plt.plot(meantime)
-    plt.show()
+    """ Write performance to file to keep track """
+    f = open(perf_file, 'w')
+    f.write("Performance: " + str(mean/loops))
+    f.close()
 
+    """ remove temp data """
     clean_data()
+
+    """ Ensure the mean has converged """
+    plt.plot(meantime)
+    plt.show()      # WILL STALL HERE
 
 if __name__ == "__main__":
     main()
