@@ -77,72 +77,48 @@ def main():
         else:
             labels.append(-1)
 
-    bottom = 0.2
-    width = 15
-    height = 15
+    bottom = 0.35
+    meantime = []
+    for j in range(1, 50):
+        bottom = float(j)/100
+        print bottom
+        x = 3
+        y = 12
+        features = []
+        for name in data['filename']:
+            name_ext = str(name) + img_ext
+            im = downscale_image(cv2.imread(name_ext, 0), bottom, x, y)
+            img = cv2.resize(im, (100*x, 100*y))
+            features.append(im.flatten())
 
-    plot_z = np.zeros((width, height))
-    """ The data """
-    for x in range(1, width+1):
-        for y in range(1, height+1):
-            features = []
-            for name in data['filename']:
-                name_ext = str(name) + img_ext
-                im = downscale_image(cv2.imread(name_ext, 0), bottom, x, y)
-                img = cv2.resize(im, (100*x, 100*y))
-                #cv2.imwrite(name_ext, img)
-                features.append(im.flatten())
+        loops = 100
+        mean = 0
+        for i in range(1, loops):
+            """ Split data for cross validation """
+            features_train, features_test, labels_train, labels_test = \
+                cross_validation.train_test_split(features, labels, test_size=0.1, random_state=i)
 
-            loops = 1500
-            mean = 0
-            meantime = []
-            for i in range(1, loops):
-                """ Split data for cross validation """
-                features_train, features_test, labels_train, labels_test = \
-                    cross_validation.train_test_split(features, labels, test_size=0.1, random_state=i)
+            """ Train """
+            clf = svm.SVC(gamma=0.001)
+            clf.fit(features_train, labels_train)
 
-                """ Train """
-                clf = svm.SVC(gamma=0.001)
-                clf.fit(features_train, labels_train)
-
-                """ Score """
-                mean += clf.score(features_test, labels_test)
-                meantime.append(mean/i)
-
-            """ Write performance to file to keep track """
-            score = mean/loops
-            print x, y, score
-            plot_z[x-1][y-1] = score
-            f = open(perf_file, 'w')
-            f.write("Performance: " + str(score))
-            f.close()
-    print plot_z
-
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-
-    xi = np.linspace(1, width, width)
-    yi = np.linspace(1, height, height)
-    print xi
-
-    X, Y = np.meshgrid(xi, yi)
-    surf = ax.plot_surface(X, Y, plot_z, rstride=1, cstride=1, cmap=cm.jet,
-                           linewidth=1, antialiased=True)
-    fig.colorbar(surf)
-
-    ax.set_xlabel('Width (pixels)')
-    ax.set_ylabel('Height (pixels)')
-    ax.set_zlabel('Score')
-    title = "Bottom " + str(bottom*100) + "% of image"
-    plt.title(title)
-    plt.show()
+            """ Score """
+            mean += clf.score(features_test, labels_test)
+        meantime.append(mean/(loops-1))
+    print meantime
+    """ Write performance to file to keep track """
+    score = mean/(loops-1)
+    print x, y, score
+    f = open(perf_file, 'w')
+    f.write("Performance: " + str(score))
+    f.close()
 
     """ remove temp data """
     #clean_data()
 
     """ Ensure the mean has converged """
-    #plt.plot(meantime)
-    #plt.show()      # WILL STALL HERE
+    plt.plot(meantime)
+    plt.show()      # WILL STALL HERE
 
 if __name__ == "__main__":
     main()
