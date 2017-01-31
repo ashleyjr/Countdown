@@ -27,6 +27,9 @@ if os.path.exists("feed"):
     shutil.rmtree('feed')
 os.mkdir("feed")
 while(True):
+    """ Lower the frame rate"""
+    time.sleep(10)
+
     """ Capture the image"""
     timestamp = time.strftime("%H_%M_%S")
     temp = timestamp + ".png"
