@@ -6,6 +6,7 @@ import cv2
 import numpy as np
 from sklearn import svm
 from sklearn import cross_validation
+from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 import shutil
 
@@ -42,9 +43,20 @@ while(True):
     img = img[int(round(0.85 * (height - 1))):(height - 1), 1:(width - 1)]
     cv2.imwrite("feed/" + timestamp + "_B_bottom.png", img)
 
-    """ Scale down the bottom part of the image """
+    """ Scale down the bottom part of the image and threshold """
     img = cv2.resize(img, (3, 12))
     ret, img = cv2.threshold(img, img.mean(), 255, cv2.THRESH_BINARY)
+
+    """ Load and classify the image """
+    clf = joblib.load("bottom.clf")
+    if clf.predict(img.flatten()) > 0:
+        f = open("feed/A_TRIGGERED_" + timestamp + ".txt",'w')
+        f.close()
+    else:
+        f = open("feed/B_NOT_TRIGGERED_" + timestamp + ".txt",'w')
+        f.close()
+
+    """ Scale up the input to the classifier """
     img = cv2.resize(img, (300, 1200))
     cv2.imwrite("feed/" + timestamp + "_C_downscale.png", img)
 

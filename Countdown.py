@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from sklearn import svm
 from sklearn import cross_validation
+from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 
 
@@ -110,6 +111,10 @@ def main():
     """ Train on all the data """
     clf = svm.SVC(gamma=0.001)
     clf.fit(features, labels)
+
+
+    """ Save the classifier """
+    joblib.dump(clf, "bottom.clf")
 
     """ Find good images """
     x = 3
