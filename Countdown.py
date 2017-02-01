@@ -84,16 +84,17 @@ def main():
         name_ext = str(name) + img_ext
         im = downscale_image(cv2.imread(name_ext, 0), bottom, x, y)
         img = cv2.resize(im, (100 * x, 100 * y))
+        cv2.imwrite(name_ext,img)
         features.append(im.flatten())
 
     """ Train and validate the classifier """
-    loops = 300
+    loops = 2
     acc = 0
     mean = []
     for i in range(1, loops):
         """ Split data for cross validation """
         features_train, features_test, labels_train, labels_test = \
-            cross_validation.train_test_split(features, labels, test_size=0.1, random_state=i)
+            cross_validation.train_test_split(features, labels, test_size=0.2, random_state=10)
 
         """ Train """
         clf = svm.SVC(gamma=0.001)
@@ -109,30 +110,35 @@ def main():
     f.close()
 
     """ Train on all the data """
-    clf = svm.SVC(gamma=0.001)
-    clf.fit(features, labels)
-
+    #clf = svm.SVC(gamma=0.001)
+    #clf.fit(features, labels)
 
     """ Save the classifier """
     joblib.dump(clf, "bottom.clf")
 
-    """ Find good images """
-    x = 3
-    y = 12
-    bottom = 0.15
-    for name in data['filename']:
-        name_ext = str(name) + img_ext
-        im = downscale_image(cv2.imread(name_ext, 0), bottom, x, y)
-        if 1 == clf.predict(im.flatten()):
-            print name
+    """ Decision function """
+    distances = clf.decision_function(features)
 
+    """ False positives and negatives """
+    for i in range(0,len(distances)):
+        print i+1,distances[i],
+        if labels[i] > 0:
+            if distances[i] < 0:
+                print "\t\tFALSE NEGATIVE"
+            else:
+                print "\t\tPOSITIVE"
+        else:
+            if distances[i] > 0:
+                print "\t\tFALSE POSITIVE"
+            else:
+                print "\t\tNEGATIVE"
 
     """ remove temp data """
-    clean_data()
+    #clean_data()
 
     """ Ensure the mean has converged """
-    plt.plot(mean)
-    plt.show()      # WILL STALL HERE
+    #plt.plot(mean)
+    #plt.show()      # WILL STALL HERE
 
 if __name__ == "__main__":
     main()
