@@ -30,21 +30,28 @@ while(True):
     """ Lower the frame rate"""
     time.sleep(10)
 
-    """ Capture the image"""
+
+    """ Time stamp and file names"""
     timestamp = time.strftime("%H_%M_%S")
-    temp = timestamp + ".png"
+    data = "feed/data.csv"
+    temp = "temp.png"
+    trigger = "feed/" + timestamp + "_trigger.png"
+    bottom = "feed/" + timestamp + "_bottom.png"
+    downscale = "feed/" + timestamp + "_downscale.png"
+    zipped = "feed/" + timestamp + ".zip"
+
+    """ Capture the image"""
     pyautogui.screenshot(temp)
     img = cv2.imread(temp, 1)
-    os.remove(temp)
     width, height = tuple(img.shape[1::-1])
     img = img[int(height*0.31):int(height*0.775), int(width*0.26):int(width*0.73)]
-    cv2.imwrite("feed/" + timestamp + "_A_trigger.png", img)
+    cv2.imwrite(trigger, img)
 
     """ Take the bottom part of the image """
-    img = cv2.imread("feed/" + timestamp + "_A_trigger.png", 0)
+    img = cv2.imread(trigger, 0)
     width, height = tuple(img.shape[1::-1])
     img = img[int(round(0.85 * (height - 1))):(height - 1), 1:(width - 1)]
-    cv2.imwrite("feed/" + timestamp + "_B_bottom.png", img)
+    cv2.imwrite(bottom, img)
 
     """ Scale down the bottom part of the image and threshold """
     img = cv2.resize(img, (3, 12))
@@ -52,14 +59,32 @@ while(True):
 
     """ Load and classify the image """
     clf = joblib.load("bottom.clf")
-    if clf.predict(img.flatten()) > 0:
-        f = open("feed/A_TRIGGERED_" + timestamp + ".txt",'w')
-        f.close()
+    classify = clf.predict(img.flatten())
+
+    """ Record the data """
+    if os.path.isfile(data):
+        f = open(data,'a')
     else:
-        f = open("feed/B_NOT_TRIGGERED_" + timestamp + ".txt",'w')
-        f.close()
+        f = open(data,'w+')
+    f.write(timestamp + ",")
+    if int(classify[0]) < 0:
+        f.write("FALSE\n\r")
+    else:
+        f.write("-----------TRUE\n\r")
+    f.close()
 
     """ Scale up the input to the classifier """
     img = cv2.resize(img, (300, 1200))
-    cv2.imwrite("feed/" + timestamp + "_C_downscale.png", img)
+    cv2.imwrite(downscale, img)
 
+
+    """ Zip up files and delete temp files """
+    zipper = zipfile.ZipFile(zipped, 'w')
+    zipper.write(trigger, compress_type=zipfile.ZIP_DEFLATED)
+    zipper.write(bottom, compress_type=zipfile.ZIP_DEFLATED)
+    zipper.write(downscale, compress_type=zipfile.ZIP_DEFLATED)
+    zipper.close()
+    os.remove(temp)
+    os.remove(trigger)
+    os.remove(bottom)
+    os.remove(downscale)
