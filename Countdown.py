@@ -110,8 +110,8 @@ def main():
     f.close()
 
     """ Train on all the data """
-    #clf = svm.SVC(gamma=0.001)
-    #clf.fit(features, labels)
+    clf = svm.SVC(gamma=0.001)
+    clf.fit(features, labels)
 
     """ Save the classifier """
     joblib.dump(clf, "bottom.clf")
@@ -119,19 +119,23 @@ def main():
     """ Decision function """
     distances = clf.decision_function(features)
 
-    """ False positives and negatives """
+    """ False positives and negatives, look out for uncertainity """
     for i in range(0,len(distances)):
         print i+1,distances[i],
         if labels[i] > 0:
             if distances[i] < 0:
-                print "\t\tFALSE NEGATIVE"
+                print "\t\tFALSE NEGATIVE",
             else:
-                print "\t\tPOSITIVE"
+                print "\t\tPOSITIVE",
         else:
             if distances[i] > 0:
-                print "\t\tFALSE POSITIVE"
+                print "\t\tFALSE POSITIVE",
             else:
-                print "\t\tNEGATIVE"
+                print "\t\tNEGATIVE",
+        if(abs(distances[i]) < 0.9):
+            print "\t\tUNCERTAIN"
+        else:
+            print ""
 
     """ remove temp data """
     #clean_data()
