@@ -9,28 +9,9 @@ from sklearn import cross_validation
 from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 import shutil
+import threading
 
-
-
-screenWidth, screenHeight = pyautogui.size()
-pyautogui.moveTo(screenWidth / 2, screenHeight / 2)
-pyautogui.moveTo(160,750)
-pyautogui.click()
-time.sleep(2)
-pyautogui.click(400,50)
-pyautogui.keyDown('ctrl')
-pyautogui.press('a')
-pyautogui.keyUp('ctrl')
-pyautogui.typewrite('http://tvcatchup.com/watch/channel4')
-pyautogui.press('enter')
-if os.path.exists("feed"):
-    shutil.rmtree('feed')
-os.mkdir("feed")
-while(True):
-    """ Lower the frame rate"""
-    time.sleep(10)
-
-
+def update():
     """ Time stamp and file names"""
     timestamp = time.strftime("%H_%M_%S")
     data = "feed/data.csv"
@@ -88,3 +69,38 @@ while(True):
     os.remove(trigger)
     os.remove(bottom)
     os.remove(downscale)
+
+
+    """ Call again in 10 minutes"""
+    t = threading.Timer(10, update)
+    t.start()
+
+
+
+def main():
+
+    """ Set up the screen caps"""
+    screenWidth, screenHeight = pyautogui.size()
+    pyautogui.moveTo(screenWidth / 2, screenHeight / 2)
+    pyautogui.moveTo(160,750)
+    pyautogui.click()
+    time.sleep(2)
+    pyautogui.click(400,50)
+    pyautogui.keyDown('ctrl')
+    pyautogui.press('a')
+    pyautogui.keyUp('ctrl')
+    pyautogui.typewrite('http://tvcatchup.com/watch/channel4')
+    pyautogui.press('enter')
+    if os.path.exists("feed"):
+        shutil.rmtree('feed')
+    os.mkdir("feed")
+
+    """ Timer """
+    update()
+
+    """ Keep alove for thread """
+    while(1):
+        pass
+
+if __name__ == "__main__":
+    main()
