@@ -76,16 +76,27 @@ def main():
             labels.append(-1)
 
     """ The features """
-    x = 3
+    x = 5
     y = 12
-    bottom = 0.15
+    bottom = 0.4
     features = []
     for name in data['filename']:
+        """ Load the image """
         name_ext = str(name) + img_ext
-        im = downscale_image(cv2.imread(name_ext, 0), bottom, x, y)
-        img = cv2.resize(im, (100 * x, 100 * y))
-        cv2.imwrite(name_ext,img)
-        features.append(im.flatten())
+        img = cv2.imread(name_ext, 0)
+        """ Take bottom section"""
+        width, height = tuple(img.shape[1::-1])
+        img = img[int(round((1 - bottom) * (height - 1))):(height - 1), 1:(width - 1)]
+        bottom_ext = str(name) + "_bottom_"+ img_ext
+        cv2.imwrite(bottom_ext,img)
+        """ Scale down """
+        img = cv2.resize(img, (x, y))
+        ret, img = cv2.threshold(img, img.mean(), 255, cv2.THRESH_BINARY)
+        scale_ext = str(name) + "_scale_"+ img_ext
+        """ Scale back up only to save """
+        cv2.imwrite(scale_ext,cv2.resize(img, (100*x, 100*y)))
+        """ Add to list of training features """
+        features.append(img.flatten())
 
     """ Train and validate the classifier """
     loops = 2
