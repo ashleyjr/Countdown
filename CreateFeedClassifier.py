@@ -8,8 +8,8 @@ from sklearn.externals import joblib
 import matplotlib.pyplot as plt
 
 """ Tunes """
-x = 3
-y = 12
+x = 6
+y = 6
 bottom = 0.4
 
 """ Global constants """
@@ -105,10 +105,10 @@ def main():
         print " "
 
     """ Clean up all the temp data """
-    for clean_file in clean_files:
-        file_list = [f for f in os.listdir(".") if f.endswith(clean_file)]
-        for f in file_list:
-            os.remove(f)
+    #for clean_file in clean_files:
+    #    file_list = [f for f in os.listdir(".") if f.endswith(clean_file)]
+    #    for f in file_list:
+    #        os.remove(f)
 
 
 if __name__ == "__main__":
