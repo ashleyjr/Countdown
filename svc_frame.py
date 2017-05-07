@@ -1,4 +1,5 @@
 from sklearn import svm
+from sklearn.externals import joblib
 import numpy as np
 
 
@@ -62,5 +63,20 @@ class svc_frame():
                 """ Fit the data, must be greater than one """
                 self.clf.fit(self.features, self.labels)
 
-                """ No have an svc to save """
+                """ Now have an svc to save """
                 self.loaded = True
+
+    def is_frame(self, feature):
+        """
+            Use the svc to determine if the feature is a frame
+        """
+        if self.loaded:
+            distance = self.clf.decision_function(feature.reshape(1, -1))
+            print distance
+            if distance > 0:
+                return True
+            else:
+                return False
+
+
+

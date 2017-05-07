@@ -53,8 +53,7 @@ class dataset():
 
             """ Load image and place in array """
             name_ext = str(data['filename'][i]) + img_ext
-            self.images.append(cv2.imread(name_ext, 0))
-            print name_ext
+            self.images.append(cv2.imread(name_ext, 1))
 
             """ Delete the extracted image now loaded """
             os.remove(name_ext)

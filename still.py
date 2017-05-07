@@ -1,9 +1,11 @@
 import cv2
+import os
 
 """ constants """
 x = 5
 y = 12
 bottom = 0.4
+temp = "still_temp.jpg"
 
 
 class still():
@@ -20,7 +22,14 @@ class still():
             Pass in a loaded image as a still
         """
         self.im = im
+
+        """ Now okay to perfrom ops"""
         self.loaded = True
+
+        """ Simple method to ensure image is in the correct format """
+        self.save(temp)
+        self.load_from_disk(temp)
+        os.remove(temp)
 
     def load_from_disk(self, path):
         """
@@ -50,9 +59,12 @@ class still():
         if not self.loaded:
             return
 
+        """ Grayscale image """
+        im = cv2.cvtColor(self.im, cv2.COLOR_BGR2GRAY)
+
         """ Take bottom section"""
-        width, height = tuple(self.im.shape[1::-1])
-        im  = self.im[int(round((1 - bottom) * (height - 1))):(height - 1), 1:(width - 1)]
+        width, height = tuple(im.shape[1::-1])
+        im  = im[int(round((1 - bottom) * (height - 1))):(height - 1), 1:(width - 1)]
 
         """ Scale down """
         im = cv2.resize(im, (x, y))
