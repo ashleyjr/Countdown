@@ -80,5 +80,36 @@ class dataset():
         """
             Return a single index in the dataset
         """
-        return self.images[index], self.labels[index]
+        return self.feature(index), self.labels(index)
+
+    def feature(self, index):
+        """
+            Return the image only
+        """
+        return self.images[index]
+
+    def label(self, index):
+        """
+            Return the label only
+        """
+        return self.labels[index]
+
+    def is_frame(self, index):
+        """
+            Check to see if numbers presents.
+            If no numbers then it is not a valid frame
+        """
+
+        """ Sum all values on the label line """
+        acc = 0
+        for i in self.label(index):
+            acc += int(i)
+
+        """ If zero then not a frame """
+        if acc > 0:
+            return True
+        else:
+            return False
+
+
 

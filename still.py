@@ -15,7 +15,14 @@ class still():
         """ No image loaded to start """
         self.loaded = False
 
-    def load(self, path):
+    def load(self, im):
+        """
+            Pass in a loaded image as a still
+        """
+        self.im = im
+        self.loaded = True
+
+    def load_from_disk(self, path):
         """
             Use a path to load an image from the disk
         """
