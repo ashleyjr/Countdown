@@ -1,45 +1,51 @@
+import time
 from svc_frame import svc_frame
 from dataset import dataset
 from still import still
+from sklearn import cross_validation
 
 def main():
     """
         Begin training the classifiers using gathered training data
     """
 
-    """ The frame classifier to be trained """
-    svcf = svc_frame()
+    good = 0
+    bad = 0
+    for i in range(0, 10):
 
-    """ Still handler """
-    s = still()
+        """ The frame classifier to be trained """
+        svcf = svc_frame()
 
-    """ Load all the training data from know folder loaction """
-    d = dataset()
+        """ Still handler """
+        s = still()
 
-    """ Go through entire dataset and train """
-    for i in range(0, d.len()):
-        s.load(d.feature(i))
-        feature = s.compress_make_linear()
-        label = d.is_frame(i)
-        svcf.train(feature, label)
-        s.save(str(i) + ".png")
+        """ Load all the training data from know folder loaction """
+        d = dataset()
 
+        """ Create training set """
+        features = []
+        labels = []
+        for i in range(0, d.len()):
+            s.load(d.feature(i))
+            features.append(s.compress_make_linear())
+            labels.append(d.is_frame(i))
 
-    """ Save ready for online processing """
-    svcf.save()
-    svcf.load()
+        """ Split for validiation """
+        features_train, features_test, labels_train, labels_test = \
+            cross_validation.train_test_split(features, labels, test_size=0.2, random_state=int(time.time()))
 
-    """ Go through entire dataset and check """
-    for i in range(0, d.len()):
-        s.load(d.feature(i))
-        feature = s.compress_make_linear()
-        label = d.is_frame(i)
-        print str(i),
-        if svcf.is_frame(feature) == d.is_frame(i):
-            print "\tPASS: ",
-        else:
-            print "\tFAIL: ",
-        print str(svcf.is_frame(feature)) + "\t\t" +  str(d.is_frame(i))
+        """ Train """
+        for i in range(0, len(features_train)):
+            svcf.train(features_train[i], labels_train[i])
+
+        """ Validate """
+        for i in range(0, len(features_test)):
+            if svcf.is_frame(features_test[i]) == labels_test[i]:
+                good += 1
+            else:
+                bad += 1
+
+        print good, bad
 
 if __name__ == "__main__":
     main()
